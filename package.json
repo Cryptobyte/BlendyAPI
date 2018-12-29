@@ -1,0 +1,24 @@
+{
+  "name": "blendyapi",
+  "version": "0.0.1",
+  "description": "BlendyCat API Project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Cryptobyte/BlendyAPI.git"
+  },
+  "author": "Steven Wright <steven.wright@meeplabs.com> (https://lawlsec.org)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Cryptobyte/BlendyAPI/issues"
+  },
+  "homepage": "https://github.com/Cryptobyte/BlendyAPI#readme",
+  "dependencies": {
+    "express": "^4.16.4",
+    "mongoose": "^5.4.1",
+    "passport": "^0.4.0"
+  }
+}
