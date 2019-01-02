@@ -7,8 +7,8 @@ const user = new Schema({
     email: String,
     joined: {type: Date, default: Date.now},
     rank: {type: Number, default: 0},
-    friends: [ObjectId],
-    requests: [ObjectId],
+    friends: [mongoose.ObjectId],
+    requests: [mongoose.ObjectId],
     coins: {type: Number, default: 0}
 });
 
