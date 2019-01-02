@@ -46,7 +46,7 @@ passport.use(new LocalStrategy(
 ));
 
 app.get('/example', (req, res, next) => {
-  return req.status(200).send({
+  return res.status(200).send({
     test: true
   });
 });
