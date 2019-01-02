@@ -59,9 +59,49 @@ function isAuthenticated(req, res, next){
     }
 }
 
+/*
+
 app.post('/api/login', passport.authenticate('local', function(req, res){
     res.redirect('/api/users/' + req.user.username);
 }));
+*/
+
+/**
+ * Modified from http://www.passportjs.org/docs/authenticate/
+ * Under "Custom Callback"
+ */
+app.post('/api/login', (req, res, next) => {
+  passport.authenticate('local', (err, user, info) => {
+    if (err) {
+      console.log('passport.authenticate error: ', err);
+      return res.status(200).send({ 
+        success: false, 
+        message: 'Internal Error' 
+      });
+    }
+
+    if (!user) {
+      console.log('no user error');
+      return res.status(200).send({ 
+        success: false, 
+        message: 'Internal Error' 
+      });
+    }
+
+    req.logIn(user, (err) => {
+      if (err) {
+        console.log('login user error: ', err);
+        return res.status(200).send({ 
+          success: false, 
+          message: 'Internal Error' 
+        });
+      }
+
+      return res.status(200).send(user);
+    });
+
+  })(req, res, next);
+});
 
 app.get('/api/users/:username', isAuthenticated, (req, res, next)=>{
     var user = User.findOne({username: req.params[0]}, (err, user)=>{
