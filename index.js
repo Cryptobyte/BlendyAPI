@@ -3,6 +3,7 @@ const express = require('express');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const User = require('./models/User');
+const Utils = require('./utils');
 const app = express();
 const port = 3000;
 
@@ -96,8 +97,7 @@ app.post('/api/login', (req, res, next) => {
           message: 'Internal Error' 
         });
       }
-
-      return res.status(200).send(user);
+      res.status(200).send(Utils.sanitize(user));
     });
 
   })(req, res, next);
@@ -107,14 +107,7 @@ app.get('/api/users/:username', isAuthenticated, (req, res, next)=>{
     var user = User.findOne({username: req.params[0]}, (err, user)=>{
         if(err) return req.json({error: err});
         if(!user) return req.json({error: `User ${req.params[0]} not found!`});
-        return req.json({
-            username: user.username,
-            joined: user.joined,
-            rank: user.rank,
-            friends: user.friends,
-            requests: user.requests,
-            coins: user.coins
-        });
+        return res.status(200).send(Utils.sanitize(user));
     });
 });
 
