@@ -9,6 +9,8 @@ const user = new Schema({
     rank: {type: Number, default: 0},
     friends: [mongoose.ObjectId],
     requests: [mongoose.ObjectId],
+    // used to store when they last created a key
+    lastKey: {type: Date, default: undefined},
     coins: {type: Number, default: 0}
 });
 

@@ -5,6 +5,10 @@ module.exports = {
         return user;
     },
     hash: (password)=>{
+        //todo - africa
         return password;
+    },
+    millis: ()=>{
+        return new Date().getTime();
     }
 };

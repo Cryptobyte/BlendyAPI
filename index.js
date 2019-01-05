@@ -3,6 +3,8 @@ const express = require('express');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const User = require('./models/User');
+const Key = require('./models/Key');
+const Game = require('./models/Game');
 const Utils = require('./utils');
 const app = express();
 const port = 3000;
@@ -124,6 +126,111 @@ app.post('/api/register', (req, res, next) =>{
             user: Utils.sanitize(user)
         });
     });
+});
+
+
+app.post('/api/get-key', (req, res, next)=>{
+    if(req.isAuthenticated()){
+        if(req.body.game !== undefined) {
+            var user = req.user;
+            Key.findOne({user: user._id}, (err, key) => {
+                if (err) {
+                    return res.status(200).send({
+                        key: false,
+                        message: err
+                    });
+                }
+                if (key) {
+                    key.delete();
+                }
+                // create a new key for the game
+                var newKey = new Key({
+                    user: user._id,
+                    game: req.body.game
+                });
+                user.lastKey = Date.now();
+                user.update();
+                return res.status(200).send({
+                    key: newKey,
+                    message: "Success!"
+                });
+            });
+        } else{
+            return res.status(200).send({
+                key: false,
+                message: "No game specified!"
+            });
+        }
+    }else{
+        return res.status(200).send({
+            key: false,
+            message: "You must be logged in to do that!"
+        });
+    }
+});
+
+app.post('/api/use-key', (req, res, next)=>{
+    if(!req.isAuthenticated()) return res.status(200).send({
+        success: false,
+        newCoins: -1,
+        message: "You must be logged in to do that!"
+    });
+
+    if(req.body.key !== undefined){
+        var user = req.user;
+        Key.findOne({key: req.body.key, user: user._id}, (err, key)=>{
+            if(err){
+                return res.status(200).send({
+                    success: false,
+                    newCoins: user.coins,
+                    message: err
+                });
+            }
+
+            if(!key){
+                return res.status(200).send({
+                    success: false,
+                    newCoins: user.coins,
+                    message: "Invalid key or user!"
+                })
+            }
+
+            // Now we must find the corresponding game
+            Game.findById(key.game, (err, game)=>{
+                if(err){
+                    return res.status(200).send({
+                        success: false,
+                        newCoins: user.coins,
+                        message: err
+                    });
+                }
+                if(!game){
+                    return res.status(200).send({
+                        success: false,
+                        newCoins: user.coins,
+                        message: "There is no such game!"
+                    });
+                }
+
+                if(Date.now() - user.lastKey < 60000){
+                    return res.status(200).send({
+                        success: false,
+                        newCoins: user.coins,
+                        message: "Used key too soon!"
+                    });
+                }
+
+                user.coins += game.reward;
+                user.save();
+
+                return res.status(200).send({
+                    success: true,
+                    newCoins: user.coins,
+                    message: "Coins added!"
+                });
+            });
+        })
+    }
 });
 
 app.get('/api/users/:username', isAuthenticated, (req, res, next)=>{
