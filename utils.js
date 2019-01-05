@@ -3,5 +3,8 @@ module.exports = {
         user.password = undefined;
         user.email = undefined;
         return user;
+    },
+    hash: (password)=>{
+        return password;
     }
 };

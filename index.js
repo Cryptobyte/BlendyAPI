@@ -103,6 +103,31 @@ app.post('/api/login', (req, res, next) => {
   })(req, res, next);
 });
 
+app.post('/api/register', (req, res, next) =>{
+    var user = new User({
+        username: req.body.username,
+        password: Utils.hash(req.body.password),
+        email: req.body.email,
+        friends: [],
+        requests: []
+    });
+
+    user.save((err, res)=>{
+        if(err){
+            return res.status(200).send({
+                success: false,
+                result: res,
+                message: 'Registration failure: internal error!'
+            });
+        }
+        return res.status(200).send({
+            success: true,
+            result: res,
+            user: Utils.sanitize(user)
+        });
+    });
+});
+
 app.get('/api/users/:username', isAuthenticated, (req, res, next)=>{
     var user = User.findOne({username: req.params[0]}, (err, user)=>{
         if(err) return req.json({error: err});
