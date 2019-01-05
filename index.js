@@ -106,25 +106,73 @@ app.post('/api/login', (req, res, next) => {
 });
 
 app.post('/api/register', (req, res, next) =>{
-    var user = new User({
-        username: req.body.username,
-        password: Utils.hash(req.body.password),
-        email: req.body.email,
-        friends: [],
-        requests: []
-    });
-
-    user.save((err)=>{
-        if(err){
+    if(req.body.username === undefined)
+        return res.status(200).send({
+            success: false,
+            message: "Username field is empty!"
+        });
+    if(req.body.password === undefined)
+        return res.status(200).send({
+            success: false,
+            message: "Password field is empty!"
+        });
+    if(req.body.email === undefined)
+        return res.status(200).send({
+            success: false,
+            message: "Email field is empty!"
+        });
+    User.findOne({username: req.body.username}, (err, userName)=>{
+        if(err) {
+            console.log(err);
             return res.status(200).send({
                 success: false,
-                message: 'Registration failure: internal error!'
+                message: "Internal error!"
             });
         }
-        return res.status(200).send({
-            success: true,
-            user: Utils.sanitize(user)
-        });
+        if(!userName){
+            User.findOne({email: req.body.email}, (err, userEmail)=>{
+                if(err){
+                    console.log(err);
+                    return res.status(200).send({
+                        success: false,
+                        message: "Internal error!"
+                    });
+                }
+
+                if(!userEmail){
+                    var newUser = new User({
+                        username: req.body.username,
+                        password: Utils.hash(req.body.password),
+                        email: req.body.email,
+                        friends: [],
+                        requests: []
+                    });
+
+                    newUser.save((err, _res) => {
+                        if (err) {
+                            return res.status(200).send({
+                                success: false,
+                                message: "Internal error!"
+                            });
+                        }
+                        return res.status(200).send({
+                            success: true,
+                            user: Utils.sanitize(user)
+                        });
+                    });
+                }else{
+                    return res.status(200).send({
+                        success: false,
+                        message: "A user with that email already exists!"
+                    });
+                }
+            });
+        }else{
+            return res.status(200).send({
+                success: false,
+                message: "A user by that username already exists!"
+            });
+        }
     });
 });
 
