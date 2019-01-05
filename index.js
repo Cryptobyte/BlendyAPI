@@ -112,17 +112,17 @@ app.post('/api/register', (req, res, next) =>{
         requests: []
     });
 
-    user.save((err, res)=>{
+    user.save((err, result)=>{
         if(err){
             return res.status(200).send({
                 success: false,
-                result: res,
+                result: result,
                 message: 'Registration failure: internal error!'
             });
         }
         return res.status(200).send({
             success: true,
-            result: res,
+            result: result,
             user: Utils.sanitize(user)
         });
     });
