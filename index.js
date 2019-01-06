@@ -105,23 +105,35 @@ app.post('/api/login', (req, res, next) => {
   })(req, res, next);
 });
 
+/**
+ * The endpoint for registration,
+ * Returns a JSON with the following information
+ * success - if the registration is successful
+ * message - error message (only sent on error)
+ * user - the sanitized user object after registration (only sent on successful registration)
+ */
 app.post('/api/register', (req, res, next) =>{
-    if(req.body.username === undefined)
+    // Check if username field is undefined or null
+    if(req.body.username === undefined || req.body.username === null)
         return res.status(200).send({
             success: false,
             message: "Username field is empty!"
         });
+    // Check if password field is undefined or null
     if(req.body.password === undefined)
         return res.status(200).send({
             success: false,
             message: "Password field is empty!"
         });
+    // Check if email is undefined or null
     if(req.body.email === undefined)
         return res.status(200).send({
             success: false,
             message: "Email field is empty!"
         });
+    // Find a user with the entered username
     User.findOne({username: req.body.username}, (err, userName)=>{
+        // If internal error, return default message and log error to console
         if(err) {
             console.log(err);
             return res.status(200).send({
@@ -129,17 +141,21 @@ app.post('/api/register', (req, res, next) =>{
                 message: "Internal error!"
             });
         }
-        if(!userName){
+        // If a user with that name does not exist, continue
+        if (!userName) {
+            // See if any users exist with that email
             User.findOne({email: req.body.email}, (err, userEmail)=>{
-                if(err){
+                // If internal error, return default message and log error to console
+                if (err) {
                     console.log(err);
                     return res.status(200).send({
                         success: false,
                         message: "Internal error!"
                     });
                 }
-
-                if(!userEmail){
+                // If no user with that email exists, proceed to create new user
+                if (!userEmail) {
+                    // Create new user with entered fields
                     var newUser = new User({
                         username: req.body.username,
                         password: Utils.hash(req.body.password),
@@ -147,38 +163,43 @@ app.post('/api/register', (req, res, next) =>{
                         friends: [],
                         requests: []
                     });
-
+                    // Save the user to the database
                     newUser.save((err, _res) => {
+                        // If error, return default error message and log full error to console
                         if (err) {
+                            console.log(err);
                             return res.status(200).send({
                                 success: false,
                                 message: "Internal error!"
                             });
                         }
+                        // If everything is successful, return the user object with all sensitive data stripped
                         return res.status(200).send({
                             success: true,
                             user: Utils.sanitize(user)
                         });
                     });
-                }else{
+                // Else a user with this email exists, send generic message
+                } else {
                     return res.status(200).send({
                         success: false,
-                        message: "A user with that email already exists!"
+                        message: "Sign up error: Username or email already exists!"
                     });
                 }
             });
-        }else{
+        // Else a user with this name already exists
+        } else {
             return res.status(200).send({
                 success: false,
-                message: "A user by that username already exists!"
+                message: "Sign up error: Username or email already exists!"
             });
         }
     });
 });
 
 
-app.post('/api/get-key', (req, res, next)=>{
-    if(req.isAuthenticated()){
+app.post('/api/get-key', (req, res, next)=> {
+    if(req.isAuthenticated()) {
         if(req.body.game !== undefined) {
             var user = req.user;
             Key.findOne({user: user._id}, (err, key) => {
@@ -203,13 +224,13 @@ app.post('/api/get-key', (req, res, next)=>{
                     message: "Success!"
                 });
             });
-        } else{
+        } else {
             return res.status(200).send({
                 key: false,
                 message: "No game specified!"
             });
         }
-    }else{
+    } else {
         return res.status(200).send({
             key: false,
             message: "You must be logged in to do that!"
@@ -217,17 +238,17 @@ app.post('/api/get-key', (req, res, next)=>{
     }
 });
 
-app.post('/api/use-key', (req, res, next)=>{
+app.post('/api/use-key', (req, res, next)=> {
     if(!req.isAuthenticated()) return res.status(200).send({
         success: false,
         newCoins: -1,
         message: "You must be logged in to do that!"
     });
 
-    if(req.body.key !== undefined){
+    if(req.body.key !== undefined) {
         var user = req.user;
-        Key.findOne({key: req.body.key, user: user._id}, (err, key)=>{
-            if(err){
+        Key.findOne({key: req.body.key, user: user._id}, (err, key)=> {
+            if(err) {
                 return res.status(200).send({
                     success: false,
                     newCoins: user.coins,
@@ -235,7 +256,7 @@ app.post('/api/use-key', (req, res, next)=>{
                 });
             }
 
-            if(!key){
+            if(!key) {
                 return res.status(200).send({
                     success: false,
                     newCoins: user.coins,
@@ -244,15 +265,15 @@ app.post('/api/use-key', (req, res, next)=>{
             }
 
             // Now we must find the corresponding game
-            Game.findById(key.game, (err, game)=>{
-                if(err){
+            Game.findById(key.game, (err, game)=> {
+                if(err) {
                     return res.status(200).send({
                         success: false,
                         newCoins: user.coins,
                         message: err
                     });
                 }
-                if(!game){
+                if(!game) {
                     return res.status(200).send({
                         success: false,
                         newCoins: user.coins,
@@ -260,7 +281,7 @@ app.post('/api/use-key', (req, res, next)=>{
                     });
                 }
 
-                if(Date.now() - user.lastKey < 60000){
+                if(Date.now() - user.lastKey < 60000) {
                     return res.status(200).send({
                         success: false,
                         newCoins: user.coins,
@@ -281,8 +302,8 @@ app.post('/api/use-key', (req, res, next)=>{
     }
 });
 
-app.get('/api/users/:username', isAuthenticated, (req, res, next)=>{
-    var user = User.findOne({username: req.params[0]}, (err, user)=>{
+app.get('/api/users/:username', isAuthenticated, (req, res, next)=> {
+    var user = User.findOne({username: req.params[0]}, (err, user)=> {
         if(err) return req.json({error: err});
         if(!user) return req.json({error: `User ${req.params[0]} not found!`});
         return res.status(200).send(Utils.sanitize(user));
