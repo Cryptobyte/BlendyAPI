@@ -197,18 +197,34 @@ app.post('/api/register', (req, res, next) =>{
     });
 });
 
-
+/**
+ * Get coin key endpoint
+ * For game, key can be cashed in one minute later to receive coin prize
+ * Required fields:
+ * game - the game object id the key is being called for
+ *
+ * Returned fields:
+ * key - The key object (will return false on error)
+ * message - Ihe status of the request
+ */
 app.post('/api/get-key', (req, res, next)=> {
+    // Key should only be retrieved if the user is authenticated
     if(req.isAuthenticated()) {
-        if(req.body.game !== undefined) {
+        // Check to make sure that game field is not null or undefined
+        if(req.body.game !== undefined && req.body.game !== null) {
+            // Get the user object
             var user = req.user;
+            // Find a key owned by the user
             Key.findOne({user: user._id}, (err, key) => {
+                // If error, return default error message and log actual error to console
                 if (err) {
+                    console.log(err);
                     return res.status(200).send({
                         key: false,
-                        message: err
+                        message: "Internal error"
                     });
                 }
+                // If the key already exists, delete it
                 if (key) {
                     key.delete();
                 }
@@ -217,19 +233,24 @@ app.post('/api/get-key', (req, res, next)=> {
                     user: user._id,
                     game: req.body.game
                 });
+                // Set the last time a key has been requested to now
                 user.lastKey = Date.now();
+                // Update the user
                 user.update();
+                // Send the key to the endpoint with success message
                 return res.status(200).send({
                     key: newKey,
                     message: "Success!"
                 });
             });
+        // If game field is left empty (by field I mean the post variables)
         } else {
             return res.status(200).send({
                 key: false,
                 message: "No game specified!"
             });
         }
+    // If not logged in, send message
     } else {
         return res.status(200).send({
             key: false,
@@ -238,24 +259,38 @@ app.post('/api/get-key', (req, res, next)=> {
     }
 });
 
+/**
+ * Use Key Endpoint
+ * This endpoint is used to cash
+ * in the keys obtained from the
+ * Get Key endpoint for coins
+ *
+ */
 app.post('/api/use-key', (req, res, next)=> {
+    // Check first to make sure user is authenticated
     if(!req.isAuthenticated()) return res.status(200).send({
         success: false,
         newCoins: -1,
         message: "You must be logged in to do that!"
     });
 
-    if(req.body.key !== undefined) {
+    // Make sure the key field is not undefined or null
+    if(req.body.key !== undefined && req.body.key !== null) {
+        // Obtain the user object
         var user = req.user;
+        // Make sure that the key exists FOR THAT USER
         Key.findOne({key: req.body.key, user: user._id}, (err, key)=> {
+            // If error, return default error message and log error to console
             if(err) {
+                console.log(err);
                 return res.status(200).send({
                     success: false,
                     newCoins: user.coins,
-                    message: err
+                    message: "Internal error"
                 });
             }
 
+            // If the key does not exist, return error message
             if(!key) {
                 return res.status(200).send({
                     success: false,
@@ -266,13 +301,16 @@ app.post('/api/use-key', (req, res, next)=> {
 
             // Now we must find the corresponding game
             Game.findById(key.game, (err, game)=> {
+                // If error on finding game, return default error message and log error to console
                 if(err) {
+                    console.log(err);
                     return res.status(200).send({
                         success: false,
                         newCoins: user.coins,
-                        message: err
+                        message: "Internal error!"
                     });
                 }
+                // If the game does not exist, return false and game not found error
                 if(!game) {
                     return res.status(200).send({
                         success: false,
@@ -280,7 +318,7 @@ app.post('/api/use-key', (req, res, next)=> {
                         message: "There is no such game!"
                     });
                 }
-
+                // If the game key was requested less than 60 seconds ago
                 if(Date.now() - user.lastKey < 60000) {
                     return res.status(200).send({
                         success: false,
@@ -288,10 +326,11 @@ app.post('/api/use-key', (req, res, next)=> {
                         message: "Used key too soon!"
                     });
                 }
-
+                // Add the games coin reward to the user object
                 user.coins += game.reward;
-                user.save();
-
+                // Update the user
+                user.update();
+                // Return the new number of coins
                 return res.status(200).send({
                     success: true,
                     newCoins: user.coins,
@@ -302,10 +341,27 @@ app.post('/api/use-key', (req, res, next)=> {
     }
 });
 
+/**
+ * User data endpoint
+ *
+ * Prerequisites
+ * - user must be logged in
+ *
+ * Returns
+ * - The sanitized user object
+ * - Error message if applicable
+ */
 app.get('/api/users/:username', isAuthenticated, (req, res, next)=> {
+    // Find the user in the database
     var user = User.findOne({username: req.params[0]}, (err, user)=> {
-        if(err) return req.json({error: err});
+        // If error, return default error message and log actual error to console
+        if(err) {
+            console.log(err);
+            return req.json({error: "Internal error!"});
+        }
+        // If the user does not exist, return a user not found error
         if(!user) return req.json({error: `User ${req.params[0]} not found!`});
+        // Otherwise, send the sanitized user object
         return res.status(200).send(Utils.sanitize(user));
     });
 });
