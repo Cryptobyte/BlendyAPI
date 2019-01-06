@@ -13,3 +13,15 @@ These endpoints should be implemented to read and return JSON data only. This pr
 
 #### Documentation
 You are responsible for maintaining updated documentation for each endpoint. You can do this pretty easily with Postman if you want to do it that way. Please make sure to provide documentation for all endpoints. You should also make sure that all your code is well documenented and up to modern JS standards. It's very important to document everything you write, you don't have to go into extreme detail but at least make sure each function and endpoint function is documented.
+
+#### Next Steps
+00 - Read [owasp password storage cheatsheet](https://www.owasp.org/index.php/Password_Storage_Cheat_Sheet)
+01 - Implement proper hashing using a Node library (see "Leverage an adaptive one-way function") of cheet sheet
+02 - Implement password checks like owasp cheat sheet
+03 - Install [Marked](https://marked.js.org/#/README.md#README.md) library
+04 - Create `/` route to serve a markdown document (see [StackOverflow](https://stackoverflow.com/a/27971978))
+05 - Fill in the markdown document to show public routes and how to use them (like Postman doc)
+06 - Make sure the markdown document has a link to the repository
+07 - Add way to allow user to change email address (endpoint, can be same endpoint as step 9)
+08 - Add way to allow user to change password (endpoint, can be same endpoint as step 8)
+09 - Add password reset "forgot password" functionality.
