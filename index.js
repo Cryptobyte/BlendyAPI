@@ -6,6 +6,7 @@ const User = require('./models/User');
 const Key = require('./models/Key');
 const Game = require('./models/Game');
 const Utils = require('./utils');
+const EnvironmentVariables = require('./environment_variables');
 const app = express();
 const port = 3000;
 
@@ -13,7 +14,7 @@ const session = require("express-session");
 const bodyParser = require("body-parser");
 
 app.use(express.static("public"));
-app.use(session({ secret: "cats" }));
+app.use(session({ secret: EnvironmentVariables.secret }));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(passport.initialize());
 app.use(passport.session());
