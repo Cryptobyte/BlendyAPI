@@ -16,7 +16,7 @@ const session = require("express-session");
 const bodyParser = require("body-parser");
 
 app.use(express.static("public"));
-app.use(session({ secret: EnvironmentVariables.secret }));
+app.use(session({ secret: process.env.secret }));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(passport.initialize());
 app.use(passport.session());
