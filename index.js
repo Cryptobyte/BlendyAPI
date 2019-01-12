@@ -352,8 +352,8 @@ app.post('/api/update-email', isAuthenticated, (req, res, next)=> {
     if (req.body.email !== undefined && req.body.email !== null) {
         const email = req.body.email;
         if (email !== user.email) {
-            user.email = email;
-            user.update((err)=> {
+            user.set({email: email});
+            user.save((err, updatedUser)=> {
                 if (err) {
                     req.status(200).send({
                         success: false,
@@ -388,15 +388,48 @@ app.post('/api/update-password', isAuthenticated, (req, res, next)=> {
         if (req.body.oldPassword !== undefined && req.body.oldPassword !== null && req.body.oldPassword !== '') {
             // Make sure old password doesn't equal the old password (case-insensitive)
             if (req.body.password.toLowerCase() !== req.body.oldPassword.toLowerCase()) {
-
+                if (user.validPassword(req.body.oldPassword)) {
+                    user.set({password: Utils.hash(req.body.password)});
+                    user.save((err)=> {
+                        if(err) {
+                            req.status(200).send({
+                                success: false,
+                                message: 'Internal error!'
+                            });
+                        } else {
+                            req.status(200).send({
+                                success: true,
+                                message: 'Updated password!'
+                            });
+                        }
+                    });
+                } else {
+                    // oldPassword doesn't validate
+                    req.status(200).send({
+                        success: false,
+                        message: "oldPassword doesn't match records!"
+                    });
+                }
             } else {
-                // Old password and new password are too similar
+                // Old password equals new password
+                req.status(200).send({
+                    success: false,
+                    message: "oldPassword can't match password field!"
+                });
             }
         } else {
             // Old password parameter is empty
+            req.status(200).send({
+                success: false,
+                message: 'oldPassword parameter is empty!'
+            });
         }
     } else {
         // New password parameter is empty
+        req.status(200).send({
+            success: false,
+            message: 'password parameter is empty!'
+        });
     }
 });
 
