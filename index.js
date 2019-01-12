@@ -7,8 +7,10 @@ const Key = require('./models/Key');
 const Game = require('./models/Game');
 const Utils = require('./utils');
 const EnvironmentVariables = require('./environment_variables');
+const marked = require('marked');
 const app = express();
 const port = 3000;
+const fs = require('fs');
 
 const session = require("express-session");
 const bodyParser = require("body-parser");
@@ -49,10 +51,12 @@ passport.use(new LocalStrategy(
     }
 ));
 
-app.get('/example', (req, res, next) => {
-  return res.status(200).send({
-    test: true
-  });
+app.get('/', (req, res, next) => {
+    fs.readFile('./md/documentation.md', (err, data)=>{
+        if(err) throw err;
+        const str = data.toString('utf-8');
+        res.status(200).send(marked(str));
+    });
 });
 
 function isAuthenticated(req, res, next){

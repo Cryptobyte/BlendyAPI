@@ -1,3 +1,5 @@
+const bcrypt = require('bcrypt');
+
 module.exports = {
     sanitize : (user)=>{
         user.password = undefined;
@@ -5,8 +7,10 @@ module.exports = {
         return user;
     },
     hash: (password)=>{
-        //todo - africa
-        return password;
+        bcrypt.hash(password, 10, (err, hash)=>{
+            if(err) return false;
+            return hash;
+        })
     },
     millis: ()=>{
         return new Date().getTime();
