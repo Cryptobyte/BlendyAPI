@@ -62,9 +62,11 @@ A JSON object containing
 The `get-key` endpoint is used in order to obtain a key for a game which can later be used to cash in for the coin reward.
 
 ##### Parameters
+
 - `game` - The game the key is being requested for
 
 ##### Returns
+
 Returns a JSON object containing
 - `key` - The key object containing
   - `uuid` - The key identification
@@ -73,6 +75,7 @@ Returns a JSON object containing
 ### Use Key
 
 ##### Description
+
 The `use-key` endpoint is used to cash the key in for coins which are added to the user's balance.
 
 ##### Returns
@@ -97,12 +100,18 @@ The `update-email` endpoint is used in order to update a user's email.
 - `message`
 
 ### Update Password
+
 ##### Description
+
 The `update-password` endpoint is used to change a user's password.
+
 ##### Parameters
+
 - `oldPassword` - The current password; used for verification
 - `password` - The new password
+
 ##### Returns
+
 - `success`
 - `message`
 
