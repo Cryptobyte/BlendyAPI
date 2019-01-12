@@ -59,6 +59,28 @@ A JSON object containing
 
 The `get-key` endpoint is used in order to obtain a key for a game which can later be used to cash in for the coin reward
 
+##### Parameters
+- `game` - The game the key is being requested for
+
+##### Returns
+Returns a JSON object containing
+- `key` - The key object containing
+  - `uuid` - The key identification
+  - `user` - The object id of the associated with the key
+
+### Use Key
+
+##### Description
+The `use-key` endpoint is used to cash the key in for coins which are added to the user's balance
+
+##### Returns
+Returns a JSON object containing
+- `sucess` - The success status of the request
+- `newCoins` - The new coin balance of the user
+- ``
+
+
+
 
 
 

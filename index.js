@@ -6,7 +6,7 @@ const User = require('./models/User');
 const Key = require('./models/Key');
 const Game = require('./models/Game');
 const Utils = require('./utils');
-const EnvironmentVariables = require('./environment_variables');
+require('dotenv').config();
 const marked = require('marked');
 const app = express();
 const port = 3000;
@@ -346,6 +346,44 @@ app.post('/api/use-key', (req, res, next)=> {
     }
 });
 
+
+app.post('/api/update-email', isAuthenticated, (req, res, next)=> {
+    const user = req.user;
+    if (req.body.email !== undefined && req.body.email !== null) {
+        const email = req.body.email;
+        if (email !== user.email) {
+            user.email = email;
+            user.update((err)=> {
+                if (err) {
+                    req.status(200).send({
+                        success: false,
+                        message: 'Internal error!'
+                    });
+                } else {
+                    req.status(200).send({
+                        success: true,
+                        message: 'Email updated!'
+                    });
+                }
+            });
+        } else {
+            // email parameter is same as last email
+            req.status(200).send({
+                success: false,
+                message: 'You cannot update your email to the previous email!'
+            });
+        }
+    } else {
+        // parameter `email` is empty or null
+        req.status(200).send({
+            success: false,
+            message: 'Email parameter is empty or null!'
+        });
+    }
+});
+
+app.post('/api/update-password', )
+
 /**
  * User data endpoint
  *
@@ -360,12 +398,12 @@ app.get('/api/users/:username', isAuthenticated, (req, res, next)=> {
     // Find the user in the database
     var user = User.findOne({username: req.params[0]}, (err, user)=> {
         // If error, return default error message and log actual error to console
-        if(err) {
+        if (err) {
             console.log(err);
             return req.json({error: "Internal error!"});
         }
         // If the user does not exist, return a user not found error
-        if(!user) return req.json({error: `User ${req.params[0]} not found!`});
+        if (!user) return req.json({error: `User ${req.params[0]} not found!`});
         // Otherwise, send the sanitized user object
         return res.status(200).send(Utils.sanitize(user));
     });
