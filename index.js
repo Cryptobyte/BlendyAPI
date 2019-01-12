@@ -161,7 +161,7 @@ app.post('/api/register', (req, res, next) =>{
                 // If no user with that email exists, proceed to create new user
                 if (!userEmail) {
                     // Create new user with entered fields
-                    var newUser = new User({
+                    const newUser = new User({
                         username: req.body.username,
                         password: Utils.hash(req.body.password),
                         email: req.body.email,
@@ -218,7 +218,7 @@ app.post('/api/get-key', (req, res, next)=> {
         // Check to make sure that game field is not null or undefined
         if(req.body.game !== undefined && req.body.game !== null) {
             // Get the user object
-            var user = req.user;
+            const user = req.user;
             // Find a key owned by the user
             Key.findOne({user: user._id}, (err, key) => {
                 // If error, return default error message and log actual error to console
@@ -234,7 +234,7 @@ app.post('/api/get-key', (req, res, next)=> {
                     key.delete();
                 }
                 // create a new key for the game
-                var newKey = new Key({
+                const newKey = new Key({
                     user: user._id,
                     game: req.body.game
                 });
@@ -282,7 +282,7 @@ app.post('/api/use-key', (req, res, next)=> {
     // Make sure the key field is not undefined or null
     if(req.body.key !== undefined && req.body.key !== null) {
         // Obtain the user object
-        var user = req.user;
+        const user = req.user;
         // Make sure that the key exists FOR THAT USER
         Key.findOne({key: req.body.key, user: user._id}, (err, key)=> {
             // If error, return default error message and log error to console
@@ -382,7 +382,23 @@ app.post('/api/update-email', isAuthenticated, (req, res, next)=> {
     }
 });
 
-app.post('/api/update-password', )
+app.post('/api/update-password', isAuthenticated, (req, res, next)=> {
+    const user = req.user;
+    if (req.body.password !== undefined && req.body.password !== null && req.body.password !== '') {
+        if (req.body.oldPassword !== undefined && req.body.oldPassword !== null && req.body.oldPassword !== '') {
+            // Make sure old password doesn't equal the old password (case-insensitive)
+            if (req.body.password.toLowerCase() !== req.body.oldPassword.toLowerCase()) {
+
+            } else {
+                // Old password and new password are too similar
+            }
+        } else {
+            // Old password parameter is empty
+        }
+    } else {
+        // New password parameter is empty
+    }
+});
 
 /**
  * User data endpoint
@@ -396,7 +412,7 @@ app.post('/api/update-password', )
  */
 app.get('/api/users/:username', isAuthenticated, (req, res, next)=> {
     // Find the user in the database
-    var user = User.findOne({username: req.params[0]}, (err, user)=> {
+    const user = User.findOne({username: req.params[0]}, (err, user)=> {
         // If error, return default error message and log actual error to console
         if (err) {
             console.log(err);

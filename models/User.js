@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Utils = require('../utils');
 var Schema = mongoose.Schema;
 
 const user = new Schema({
@@ -14,4 +15,9 @@ const user = new Schema({
     coins: {type: Number, default: 0}
 });
 
-module.exports = mongoose.model("User", user);
+user.statics.validPassword = function(password) {
+    return Utils.compareHash(password, this.password);
+};
+
+const User = mongoose.model("User", user);
+module.exports = user;

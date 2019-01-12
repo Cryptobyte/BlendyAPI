@@ -6,11 +6,17 @@ module.exports = {
         user.email = undefined;
         return user;
     },
-    hash: (password)=>{
+    hash: (password)=> {
         bcrypt.hash(password, 10, (err, hash)=>{
-            if(err) return false;
+            if(err) throw err;
             return hash;
         })
+    },
+    compareHash: (password, hash)=> {
+        bcrypt.compare(password, hash, (err, res)=>{
+            if(err) throw err;
+            return res;
+        });
     },
     millis: ()=>{
         return new Date().getTime();
