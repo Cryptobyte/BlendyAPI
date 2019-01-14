@@ -115,6 +115,41 @@ The `update-password` endpoint is used to change a user's password.
 - `success`
 - `message`
 
+### Forgot Password
+
+##### Description
+
+The `forgot-password` endpoint is used to send a link to the user's email that they can use to reset their password in case they forget.
+
+##### Parameters
+
+- `username`
+
+##### Returns
+
+- `success`
+- `message`
+
+### Reset Password
+
+##### Description
+
+The `reset-password` endpoint is different than the the `update-password` endpoint in that this endpoint is used it reset a password 
+if forgotten.
+
+##### Parameters
+
+- `key` - The uuid of the key
+- `password` - The new password
+
+##### Returns
+
+- `success`
+- `message`
+
+
+
+
 
 
 
