@@ -20,4 +20,4 @@ user.statics.validPassword = function(password) {
 };
 
 const User = mongoose.model("User", user);
-module.exports = user;
+module.exports = User;

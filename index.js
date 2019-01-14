@@ -5,6 +5,8 @@ const LocalStrategy = require('passport-local').Strategy;
 const User = require('./models/User');
 const Key = require('./models/Key');
 const Game = require('./models/Game');
+const EmailKey = require('./models/EmailKey');
+const nodemailer = require('nodemailer');
 const Utils = require('./utils');
 require('dotenv').config();
 const marked = require('marked');
@@ -20,6 +22,16 @@ app.use(session({ secret: process.env.secret }));
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(passport.initialize());
 app.use(passport.session());
+
+const transporter = nodemailer.createTransport({
+    host: process.env.email_host,
+    port: process.env.email_port,
+    secure: process.env.email_secure,
+    auth: {
+        user: process.env.email_username,
+        pass: process.env.email_password
+    }
+});
 
 mongoose.connect(
   'mongodb://localhost:27017/BlendyAPI', {
@@ -430,6 +442,102 @@ app.post('/api/update-password', isAuthenticated, (req, res, next)=> {
             success: false,
             message: 'password parameter is empty!'
         });
+    }
+});
+
+app.get('/api/forgot-password', (req, res)=> {
+    if (req.body.username !== undefined && req.body.username !== null && req.body.username !== '') {
+        User.findOne({username: username}, (err, user)=> {
+            if (err) {
+                return res.status(200).send({
+                    success: false,
+                    message: 'Internal error!'
+                });
+            }
+            if (!user) {
+                return res.status(200).send({
+                    success: false,
+                    message: 'No user exists!'
+                });
+            }
+            EmailKey.findOne({user: user._id}, (err, key) => {
+                if (err) {
+                    return res.status(200).send({
+                        success: false,
+                        message: 'Internal error!'
+                    });
+                }
+                if (key) {
+                    key.delete();
+                }
+
+                const newKey = new EmailKey({
+                    user: user._id
+                });
+
+                newKey.save((err, savedKey) => {
+                    if (err) {
+                        res.status(200).send({
+                            success: false,
+                            message: 'Internal error!'
+                        });
+                    }
+                    const link = process.env.password_reset_link + savedKey.key;
+                    const mailOptions = {
+                        from: process.env.email_from,
+                        to: user.email,
+                        subject: 'Password reset for BlendyArcade',
+                        text: "Click <a href='" + link + "'>here</a> to reset your password."
+                    };
+                    transporter.sendMail(mailOptions, (err, info) => {
+                        if (err) {
+                            return res.status(200).send({
+                                success: false,
+                                message: "Internal error!"
+                            });
+                        }
+                        res.status(200).send({
+                            success: true,
+                            message: "Email sent!"
+                        });
+                    });
+                })
+            });
+        });
+    } else {
+        // Username field empty
+    }
+});
+
+app.get('/api/reset-password', (req, res)=> {
+    const key = req.body.key;
+    const password = req.body.password;
+    if (key !== undefined && key !== null && key !== '') {
+        if (password !== undefined && password !== null && password !== '') {
+            EmailKey.findOne({key: key}, (err, key)=> {
+                if (!err) {
+                    return res.send({
+                        success: false,
+                        message: 'Internal error!'
+                    });
+                }
+
+                if (!key) {
+                    return res.send({
+                        success: false,
+                        message: 'Email verification'
+                    });
+                }
+
+                User.findById(key.user, ()=> {
+                    // Todo - Africa
+                });
+            });
+        } else {
+
+        }
+    } else {
+
     }
 });
 
