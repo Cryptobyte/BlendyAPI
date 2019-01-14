@@ -528,9 +528,38 @@ app.get('/api/reset-password', (req, res)=> {
                         message: 'Email verification'
                     });
                 }
+                // We need to set the new password
+                User.findById(key.user, (err, user)=> {
+                    if (err) {
+                        return res.status(200).send({
+                            success: false,
+                            message: 'Internal error!'
+                        });
 
-                User.findById(key.user, ()=> {
-                    // Todo - Africa
+                    }
+                    if (!user) {
+                        // What went wrong? This should never happen
+                        return res.status(200).send({
+                            success: false,
+                            message: 'User does not exist!'
+                        })
+                    }
+
+                    const newPassword = Utils.hash(password);
+                    user.set({password: newPassword});
+                    user.save((err, savedUser)=>{
+                        if (err) {
+                            return res.status(200).send({
+                                success: false,
+                                message: 'Internal error!'
+                            });
+                        }
+
+                        res.status(200).send({
+                           success: true,
+                           message: 'Password reset!'
+                        });
+                    });
                 });
             });
         } else {
